@@ -33,6 +33,13 @@ class NotModifiedResponse(Response):
         )
 
 
+class RangeResponse(Response):
+    def __init__(self, range_header):
+        return super().__init__(
+            headers={"content-range": range_header},
+        )
+
+
 class StaticFiles:
     def __init__(
         self,
@@ -112,6 +119,9 @@ class StaticFiles:
         response = FileResponse(full_path, stat_result=stat_result, method=method)
         if self.is_not_modified(response.headers, request_headers):
             return NotModifiedResponse(response.headers)
+        range_header = request_headers.get('range')
+        if range_header:
+            return RangeResponse(range_header)
         return response
 
     async def check_config(self) -> None:
@@ -158,3 +168,14 @@ class StaticFiles:
             pass
 
         return False
+
+    def parse_byte_range(range_header):
+        units, _, range_spec = range_header.strip().partition('=')
+        if units != 'bytes':
+            raise ValueError()
+        str_ranges = range_spec.split(",")
+        ranges = []
+        for str_range in str_ranges:
+            start, end = str_range.split("-")
+            ranges.append((start, end))
+        return ranges

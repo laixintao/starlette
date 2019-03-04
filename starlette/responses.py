@@ -77,6 +77,8 @@ class Response:
                 content_type += "; charset=" + self.charset
             raw_headers.append((b"content-type", content_type.encode("latin-1")))
 
+        raw_headers.append((b"accept-ranges", b"bytes"))  # TODO move to init first
+
         self.raw_headers = raw_headers
 
     @property
